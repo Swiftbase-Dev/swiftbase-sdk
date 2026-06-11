@@ -1,6 +1,6 @@
 # Swiftbase TypeScript SDK
 
-A robust, type-safe TypeScript SDK for integrating customer applications with the Swiftbase platform. Supports SDK initialization, authentication, user profiles, identity management, database queries (with real-time WebSocket subscriptions), and S3-compatible cloud storage.
+TypeScript SDK for integrating customer applications with the Swiftbase platform. Supports SDK initialization, authentication, user profiles, identity management, database queries (with real-time WebSocket subscriptions), and S3-compatible cloud storage.
 
 ## Installation
 
