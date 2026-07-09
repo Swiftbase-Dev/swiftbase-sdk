@@ -28,6 +28,7 @@ import {
   assignRole, unassignRole
 } from "./identity";
 import { db } from "./database";
+import { search } from "./database/search";
 import { Storage } from "./storage/storage";
 import type { StorageOptions, BucketInfo, S3Object, ListObjectsResult } from "./storage/storage";
 
@@ -62,6 +63,7 @@ export {
   assignRole,
   unassignRole,
   db,
+  search,
   Storage,
 };
 export type {

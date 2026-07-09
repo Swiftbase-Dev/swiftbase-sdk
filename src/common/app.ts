@@ -72,9 +72,10 @@ export const initializeSdk = (projectId: string, options?: initializeSdkOptions)
   // Initialize UserManager for OIDC
   if (typeof window !== "undefined") {
     app.userManager = new UserManager({
-      authority: app.baseUrl,
+      authority: app.baseUrl.replace("api.swiftbase", "identity.swiftbase").replace("app.swiftbase", "identity.swiftbase"),
       client_id: app.projectId,
       redirect_uri: window.location.origin,
+      post_logout_redirect_uri: window.location.origin,
       response_type: "code",
       scope: "openid profile email",
       userStore: new WebStorageStateStore({ store: window.sessionStorage }),

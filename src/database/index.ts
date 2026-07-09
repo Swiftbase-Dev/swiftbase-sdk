@@ -32,7 +32,10 @@ export class DatabaseSocketManager {
   }
 
   public isWebSocketAvailable(): boolean {
-    return this.socket !== null && (this.socket.readyState === 0 || this.socket.readyState === 1);
+    if (typeof window === "undefined") {
+      return false;
+    }
+    return this.socket !== null && this.socket.readyState === 1;
   }
 
   private getWebSocketUrl(baseUrl: string, token: string | null): string {
@@ -337,6 +340,11 @@ export class QueryBuilder implements PromiseLike<any> {
       } catch (err) {
         console.warn("[QueryBuilder] WebSocket execution failed, falling back to REST:", err);
       }
+    } else if (typeof window !== "undefined") {
+      // Connect in the background asynchronously so we don't delay the page load (browser only)
+      socketManager.ensureConnected().catch((err) => {
+        console.warn("[QueryBuilder] Background WebSocket connection failed:", err);
+      });
     }
 
     return await makeRequest(HTTPMethod.POST, "/api/db/query", undefined, this.payload);
