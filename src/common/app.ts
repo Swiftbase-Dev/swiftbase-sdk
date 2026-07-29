@@ -72,7 +72,7 @@ export const initializeSdk = (projectId: string, options?: initializeSdkOptions)
   // Initialize UserManager for OIDC
   if (typeof window !== "undefined") {
     app.userManager = new UserManager({
-      authority: app.baseUrl.replace("api.swiftbase", "identity.swiftbase").replace("app.swiftbase", "identity.swiftbase"),
+      authority: app.baseUrl,
       client_id: app.projectId,
       redirect_uri: window.location.origin,
       post_logout_redirect_uri: window.location.origin,
