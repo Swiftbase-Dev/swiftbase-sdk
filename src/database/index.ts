@@ -331,6 +331,10 @@ export class QueryBuilder implements PromiseLike<any> {
     };
   }
 
+  getPayload(): QueryPayload {
+    return { ...this.payload };
+  }
+
   async execute(): Promise<{ data: any[]; columns: string[]; count: number }> {
     const socketManager = DatabaseSocketManager.getInstance();
 
@@ -350,6 +354,36 @@ export class QueryBuilder implements PromiseLike<any> {
     return await makeRequest(HTTPMethod.POST, "/api/db/query", undefined, this.payload);
   }
 
+  /**
+   * Seamlessly stream query batches for large volume data operations
+   */
+  async *stream(options: { batchSize?: number } = {}): AsyncGenerator<{ data: any[]; count: number }> {
+    const batchSize = options.batchSize || 1000;
+    let offset = this.payload.offset || 0;
+    const maxLimit = this.payload.limit;
+
+    while (true) {
+      const currentBatchLimit = maxLimit ? Math.min(batchSize, maxLimit - offset) : batchSize;
+      if (currentBatchLimit <= 0) break;
+
+      const pagePayload = {
+        ...this.payload,
+        limit: currentBatchLimit,
+        offset,
+      };
+
+      const result = await makeRequest(HTTPMethod.POST, "/api/db/query", undefined, pagePayload);
+      const rows = result.data || [];
+      if (rows.length === 0) break;
+
+      yield { data: rows, count: rows.length };
+
+      offset += rows.length;
+      if (rows.length < currentBatchLimit) break;
+      if (maxLimit && offset >= maxLimit) break;
+    }
+  }
+
   then<TResult1 = any, TResult2 = never>(
     onfulfilled?: ((value: any) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
@@ -358,8 +392,78 @@ export class QueryBuilder implements PromiseLike<any> {
   }
 }
 
+export interface BatchQueryResult {
+  data: any[];
+  columns: string[];
+  count: number;
+  rowCount: number;
+  rowsAffected?: number;
+  rowsJSON?: string;
+  executionTimeMs?: number;
+}
+
 export function db(dbName: string) {
-  return function (tableName: string) {
+  const dbClient = function (tableName: string) {
     return new QueryBuilder(dbName, tableName);
   };
+
+  /**
+   * Execute multiple QueryBuilder instances or raw SQL queries in a single atomic batch request
+   */
+  dbClient.batch = async function (
+    queries: Array<QueryBuilder | string>
+  ): Promise<BatchQueryResult[]> {
+    if (!queries || queries.length === 0) return [];
+
+    // If all are QueryBuilder instances, execute them via batch or sequential
+    const statementsOrQueries = queries.map(q => {
+      if (typeof q === "string") return q;
+      if (q instanceof QueryBuilder) {
+        const payload = q.getPayload();
+        // Convert QueryBuilder payload to SQL or structured query
+        const cols = payload.select && payload.select.length > 0 ? payload.select.map(c => `"${c}"`).join(", ") : "*";
+        let whereClause = "";
+        if (payload.where && payload.where.length > 0) {
+          whereClause = " WHERE " + payload.where.map(w => {
+            const val = w.value === null || w.value === undefined ? "NULL" : (typeof w.value === "string" ? `'${w.value.replace(/'/g, "''")}'` : String(w.value));
+            return `"${w.column}" ${w.operator || '='} ${val}`;
+          }).join(" AND ");
+        }
+        let sql = `SELECT ${cols} FROM "${payload.table}"${whereClause}`;
+        if (payload.limit) sql += ` LIMIT ${payload.limit}`;
+        if (payload.offset) sql += ` OFFSET ${payload.offset}`;
+        return sql;
+      }
+      return String(q);
+    });
+
+    const res = await makeRequest(HTTPMethod.POST, "/api/sql", undefined, {
+      database: dbName,
+      databaseId: dbName,
+      batch: statementsOrQueries
+    });
+
+    if (res && res.isBatch && Array.isArray(res.results)) {
+      return res.results;
+    }
+    return [res];
+  };
+
+  /**
+   * Execute multiple raw SQL statements in a batch and receive multiple distinct result sets
+   */
+  dbClient.executeBatch = async function (sqlStatements: string[]): Promise<BatchQueryResult[]> {
+    const res = await makeRequest(HTTPMethod.POST, "/api/sql", undefined, {
+      database: dbName,
+      databaseId: dbName,
+      batch: sqlStatements
+    });
+
+    if (res && res.isBatch && Array.isArray(res.results)) {
+      return res.results;
+    }
+    return [res];
+  };
+
+  return dbClient;
 }

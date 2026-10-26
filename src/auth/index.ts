@@ -7,8 +7,17 @@ import { isLoggedIn } from "./isloggedin";
 import { logout } from "./logout";
 import { getAccessToken } from "./getaccesstoken";
 import { verifyToken, verifyServiceToken } from "./verifytoken";
+import { registerPasskey, loginWithPasskey, listPasskeys, deletePasskey, isPasskeySupported } from "./passkeys";
 
-import type { LoginInput, ResetPasswordInput, AuthorizeOptions, TokenResponse } from "./types";
+import type {
+  LoginInput,
+  ResetPasswordInput,
+  AuthorizeOptions,
+  TokenResponse,
+  PasskeyCredential,
+  PasskeyRegistrationOptions,
+  PasskeyLoginOptions,
+} from "./types";
 
 export {
   loginWithPassword,
@@ -22,5 +31,18 @@ export {
   getAccessToken,
   verifyToken,
   verifyServiceToken,
+  registerPasskey,
+  loginWithPasskey,
+  listPasskeys,
+  deletePasskey,
+  isPasskeySupported,
 };
-export type { LoginInput, ResetPasswordInput, AuthorizeOptions, TokenResponse };
+export type {
+  LoginInput,
+  ResetPasswordInput,
+  AuthorizeOptions,
+  TokenResponse,
+  PasskeyCredential,
+  PasskeyRegistrationOptions,
+  PasskeyLoginOptions,
+};

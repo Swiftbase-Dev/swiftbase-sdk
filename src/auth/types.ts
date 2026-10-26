@@ -35,3 +35,27 @@ export interface TokenResponse {
   scope?: string;
   user?: Profile;
 }
+
+export interface PasskeyCredential {
+  id: string;
+  name: string;
+  /** The WebAuthn relying party ID (hostname) this passkey is bound to; it only works on that origin. */
+  rpId: string;
+  deviceType?: string;
+  backedUp: boolean;
+  transports: string[];
+  createdAt?: string;
+  lastUsedAt?: string | null;
+}
+
+export interface PasskeyRegistrationOptions {
+  /** Friendly label for the passkey */
+  name?: string;
+  /** Run the ceremony on the Swiftbase universal login page (popup) instead of the current page */
+  hosted?: boolean;
+}
+
+export interface PasskeyLoginOptions {
+  /** Optional email to narrow the passkeys offered to the user */
+  email?: string;
+}

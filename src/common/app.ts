@@ -4,6 +4,7 @@ import { UserManager, WebStorageStateStore } from "oidc-client-ts";
 interface SwiftbaseApp {
   projectId: string;
   baseUrl: string;
+  authWebUrl: string;
   accessToken: Token | null;
   refreshToken: Token | null;
   debounceTimeout: number;
@@ -15,6 +16,8 @@ interface SwiftbaseApp {
 
 interface initializeSdkOptions {
   baseUrl: string;
+  /** Origin of the universal login page (used for hosted passkey enrollment). Defaults to https://identity.swiftbase.io */
+  authWebUrl?: string;
   debounceTimeout?: number;
   cacheArticles?: boolean;
   searchCacheEnabled?: boolean;
@@ -24,6 +27,7 @@ interface initializeSdkOptions {
 export const app: SwiftbaseApp = {
   projectId: "",
   baseUrl: "https://api.swiftbase.io",
+  authWebUrl: "https://identity.swiftbase.io",
   accessToken: null,
   refreshToken: null,
   debounceTimeout: 300,
@@ -40,6 +44,10 @@ export const initializeSdk = (projectId: string, options?: initializeSdkOptions)
   if (options?.baseUrl) {
     // Remove trailing slash if present
     app.baseUrl = options.baseUrl.endsWith("/") ? options.baseUrl.slice(0, -1) : options.baseUrl;
+  }
+  // Override the universal login page URL if provided
+  if (options?.authWebUrl) {
+    app.authWebUrl = options.authWebUrl.endsWith("/") ? options.authWebUrl.slice(0, -1) : options.authWebUrl;
   }
   // Set the debounce timeout if provided
   if (options?.debounceTimeout !== undefined) {

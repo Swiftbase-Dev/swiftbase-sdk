@@ -17,8 +17,21 @@ import {
   getAccessToken,
   verifyToken,
   verifyServiceToken,
+  registerPasskey,
+  loginWithPasskey,
+  listPasskeys,
+  deletePasskey,
+  isPasskeySupported,
 } from "./auth";
-import type { LoginInput, ResetPasswordInput, AuthorizeOptions, TokenResponse } from "./auth";
+import type {
+  LoginInput,
+  ResetPasswordInput,
+  AuthorizeOptions,
+  TokenResponse,
+  PasskeyCredential,
+  PasskeyRegistrationOptions,
+  PasskeyLoginOptions,
+} from "./auth";
 import { getProfile, updateProfile, updateUser, changePassword } from "./profile";
 import type { Profile, ProfileInput, ChangePasswordInput } from "./profile";
 import {
@@ -27,10 +40,13 @@ import {
   createService, deleteService,
   assignRole, unassignRole
 } from "./identity";
-import { db } from "./database";
+import { db, QueryBuilder } from "./database";
+import type { BatchQueryResult } from "./database";
 import { search } from "./database/search";
 import { Storage } from "./storage/storage";
 import type { StorageOptions, BucketInfo, S3Object, ListObjectsResult } from "./storage/storage";
+import { ai } from "./ai";
+import type { AIChatMessage, AIChatCompletionOptions, AIChatCompletionResponse } from "./ai";
 
 export {
   initializeSdk,
@@ -49,6 +65,11 @@ export {
   resetPassword,
   verifyToken,
   verifyServiceToken,
+  registerPasskey,
+  loginWithPasskey,
+  listPasskeys,
+  deletePasskey,
+  isPasskeySupported,
   getProfile,
   updateProfile,
   updateUser,
@@ -63,14 +84,20 @@ export {
   assignRole,
   unassignRole,
   db,
+  QueryBuilder,
   search,
   Storage,
+  ai,
 };
 export type {
+  BatchQueryResult,
   LoginInput,
   ResetPasswordInput,
   AuthorizeOptions,
   TokenResponse,
+  PasskeyCredential,
+  PasskeyRegistrationOptions,
+  PasskeyLoginOptions,
   Profile,
   ProfileInput,
   ChangePasswordInput,
@@ -78,4 +105,7 @@ export type {
   BucketInfo,
   S3Object,
   ListObjectsResult,
+  AIChatMessage,
+  AIChatCompletionOptions,
+  AIChatCompletionResponse,
 };
