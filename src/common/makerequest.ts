@@ -132,6 +132,7 @@ export const makeRequest = async (
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "Connection": "keep-alive",
   };
 
   if (token) {
@@ -141,6 +142,7 @@ export const makeRequest = async (
   const options: RequestInit = {
     method,
     headers,
+    keepalive: true,
   };
 
   if (body) {

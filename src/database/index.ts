@@ -465,5 +465,30 @@ export function db(dbName: string) {
     return [res];
   };
 
+  /**
+   * Execute a raw SQL query
+   */
+  dbClient.executeSQL = async function (sql: string): Promise<any> {
+    return await makeRequest(HTTPMethod.POST, "/api/sql", undefined, {
+      database: dbName,
+      databaseId: dbName,
+      sql
+    });
+  };
+
+  /**
+   * Execute multiple raw SQL statements in a batch (alias for executeBatch)
+   */
+  dbClient.executeBatchSQL = async function (sqlStatements: string[] | string): Promise<BatchQueryResult[]> {
+    const payload = typeof sqlStatements === "string" 
+      ? { database: dbName, databaseId: dbName, sql: sqlStatements } 
+      : { database: dbName, databaseId: dbName, batch: sqlStatements };
+    const res = await makeRequest(HTTPMethod.POST, "/api/sql", undefined, payload);
+    if (res && res.isBatch && Array.isArray(res.results)) {
+      return res.results;
+    }
+    return [res];
+  };
+
   return dbClient;
 }
