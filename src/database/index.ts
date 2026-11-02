@@ -1,7 +1,7 @@
 import { app } from "../common/app";
 import { getAccessToken } from "../auth";
 import { makeRequest, HTTPMethod } from "../common/makerequest";
-import { v4 as uuidv4 } from "uuid";
+import { generateId } from "../common/id";
 
 export interface QueryPayload {
   database: string;
@@ -126,7 +126,7 @@ export class DatabaseSocketManager {
     if (!this.socket || this.socket.readyState !== 1) {
       throw new Error("WebSocket not open");
     }
-    const id = uuidv4();
+    const id = generateId();
     this.socket.send(JSON.stringify({
       id,
       action: "listen",
@@ -170,7 +170,7 @@ export class DatabaseSocketManager {
 
   public async executeQuery(payload: QueryPayload): Promise<any> {
     await this.ensureConnected();
-    const id = uuidv4();
+    const id = generateId();
     this.socket.send(JSON.stringify({
       id,
       action: "query",
@@ -390,6 +390,20 @@ export class QueryBuilder implements PromiseLike<any> {
   ): Promise<TResult1 | TResult2> {
     return this.execute().then(onfulfilled, onrejected);
   }
+
+  /**
+   * Generates a sequential, lowercase, 26-character time-sortable database ID (monotonic ULID).
+   */
+  generateId(): string {
+    return generateId();
+  }
+
+  /**
+   * Alias for generateId().
+   */
+  id(): string {
+    return generateId();
+  }
 }
 
 export interface BatchQueryResult {
@@ -402,93 +416,123 @@ export interface BatchQueryResult {
   executionTimeMs?: number;
 }
 
-export function db(dbName: string) {
-  const dbClient = function (tableName: string) {
-    return new QueryBuilder(dbName, tableName);
-  };
-
-  /**
-   * Execute multiple QueryBuilder instances or raw SQL queries in a single atomic batch request
-   */
-  dbClient.batch = async function (
-    queries: Array<QueryBuilder | string>
-  ): Promise<BatchQueryResult[]> {
-    if (!queries || queries.length === 0) return [];
-
-    // If all are QueryBuilder instances, execute them via batch or sequential
-    const statementsOrQueries = queries.map(q => {
-      if (typeof q === "string") return q;
-      if (q instanceof QueryBuilder) {
-        const payload = q.getPayload();
-        // Convert QueryBuilder payload to SQL or structured query
-        const cols = payload.select && payload.select.length > 0 ? payload.select.map(c => `"${c}"`).join(", ") : "*";
-        let whereClause = "";
-        if (payload.where && payload.where.length > 0) {
-          whereClause = " WHERE " + payload.where.map(w => {
-            const val = w.value === null || w.value === undefined ? "NULL" : (typeof w.value === "string" ? `'${w.value.replace(/'/g, "''")}'` : String(w.value));
-            return `"${w.column}" ${w.operator || '='} ${val}`;
-          }).join(" AND ");
-        }
-        let sql = `SELECT ${cols} FROM "${payload.table}"${whereClause}`;
-        if (payload.limit) sql += ` LIMIT ${payload.limit}`;
-        if (payload.offset) sql += ` OFFSET ${payload.offset}`;
-        return sql;
-      }
-      return String(q);
-    });
-
-    const res = await makeRequest(HTTPMethod.POST, "/api/sql", undefined, {
-      database: dbName,
-      databaseId: dbName,
-      batch: statementsOrQueries
-    });
-
-    if (res && res.isBatch && Array.isArray(res.results)) {
-      return res.results;
-    }
-    return [res];
-  };
-
-  /**
-   * Execute multiple raw SQL statements in a batch and receive multiple distinct result sets
-   */
-  dbClient.executeBatch = async function (sqlStatements: string[]): Promise<BatchQueryResult[]> {
-    const res = await makeRequest(HTTPMethod.POST, "/api/sql", undefined, {
-      database: dbName,
-      databaseId: dbName,
-      batch: sqlStatements
-    });
-
-    if (res && res.isBatch && Array.isArray(res.results)) {
-      return res.results;
-    }
-    return [res];
-  };
-
-  /**
-   * Execute a raw SQL query
-   */
-  dbClient.executeSQL = async function (sql: string): Promise<any> {
-    return await makeRequest(HTTPMethod.POST, "/api/sql", undefined, {
-      database: dbName,
-      databaseId: dbName,
-      sql
-    });
-  };
-
-  /**
-   * Execute multiple raw SQL statements in a batch (alias for executeBatch)
-   */
-  dbClient.executeBatchSQL = async function (sqlStatements: string[] | string): Promise<BatchQueryResult[]> {
-    const payload = typeof sqlStatements === "string" 
-      ? { database: dbName, databaseId: dbName, sql: sqlStatements } 
-      : { database: dbName, databaseId: dbName, batch: sqlStatements };
-    const res = await makeRequest(HTTPMethod.POST, "/api/sql", undefined, payload);
-    if (res && res.isBatch && Array.isArray(res.results)) {
-      return res.results;
-    }
-    return [res];
-  };
-
-  return dbClient;
+export interface DbClient {
+  (tableName: string): QueryBuilder;
+  generateId: () => string;
+  id: () => string;
+  batch: (queries: Array<QueryBuilder | string>) => Promise<BatchQueryResult[]>;
+  executeBatch: (sqlStatements: string[]) => Promise<BatchQueryResult[]>;
+  executeSQL: (sql: string) => Promise<any>;
+  executeBatchSQL: (sqlStatements: string[] | string) => Promise<BatchQueryResult[]>;
 }
+
+export interface DbInterface {
+  (dbName: string): DbClient;
+  generateId: () => string;
+  id: () => string;
+}
+
+export const db: DbInterface = Object.assign(
+  function (dbName: string): DbClient {
+    const dbClient = function (tableName: string) {
+      return new QueryBuilder(dbName, tableName);
+    } as any;
+
+    /**
+     * Generates a sequential, lowercase, 26-character time-sortable database ID (monotonic ULID).
+     */
+    dbClient.generateId = generateId;
+    dbClient.id = generateId;
+
+    /**
+     * Execute multiple QueryBuilder instances or raw SQL queries in a single atomic batch request
+     */
+    dbClient.batch = async function (
+      queries: Array<QueryBuilder | string>
+    ): Promise<BatchQueryResult[]> {
+      if (!queries || queries.length === 0) return [];
+
+      // If all are QueryBuilder instances, execute them via batch or sequential
+      const statementsOrQueries = queries.map(q => {
+        if (typeof q === "string") return q;
+        if (q instanceof QueryBuilder) {
+          const payload = q.getPayload();
+          // Convert QueryBuilder payload to SQL or structured query
+          const cols = payload.select && payload.select.length > 0 ? payload.select.map(c => `"${c}"`).join(", ") : "*";
+          let whereClause = "";
+          if (payload.where && payload.where.length > 0) {
+            whereClause = " WHERE " + payload.where.map(w => {
+              const val = w.value === null || w.value === undefined ? "NULL" : (typeof w.value === "string" ? `'${w.value.replace(/'/g, "''")}'` : String(w.value));
+              return `"${w.column}" ${w.operator || '='} ${val}`;
+            }).join(" AND ");
+          }
+          let sql = `SELECT ${cols} FROM "${payload.table}"${whereClause}`;
+          if (payload.limit) sql += ` LIMIT ${payload.limit}`;
+          if (payload.offset) sql += ` OFFSET ${payload.offset}`;
+          return sql;
+        }
+        return String(q);
+      });
+
+      const res = await makeRequest(HTTPMethod.POST, "/api/sql", undefined, {
+        database: dbName,
+        databaseId: dbName,
+        batch: statementsOrQueries
+      });
+
+      if (res && res.isBatch && Array.isArray(res.results)) {
+        return res.results;
+      }
+      return [res];
+    };
+
+    /**
+     * Execute multiple raw SQL statements in a batch and receive multiple distinct result sets
+     */
+    dbClient.executeBatch = async function (sqlStatements: string[]): Promise<BatchQueryResult[]> {
+      const res = await makeRequest(HTTPMethod.POST, "/api/sql", undefined, {
+        database: dbName,
+        databaseId: dbName,
+        batch: sqlStatements
+      });
+
+      if (res && res.isBatch && Array.isArray(res.results)) {
+        return res.results;
+      }
+      return [res];
+    };
+
+    /**
+     * Execute a raw SQL query
+     */
+    dbClient.executeSQL = async function (sql: string): Promise<any> {
+      return await makeRequest(HTTPMethod.POST, "/api/sql", undefined, {
+        database: dbName,
+        databaseId: dbName,
+        sql
+      });
+    };
+
+    /**
+     * Execute multiple raw SQL statements in a batch (alias for executeBatch)
+     */
+    dbClient.executeBatchSQL = async function (sqlStatements: string[] | string): Promise<BatchQueryResult[]> {
+      const payload = typeof sqlStatements === "string" 
+        ? { database: dbName, databaseId: dbName, sql: sqlStatements } 
+        : { database: dbName, databaseId: dbName, batch: sqlStatements };
+      const res = await makeRequest(HTTPMethod.POST, "/api/sql", undefined, payload);
+      if (res && res.isBatch && Array.isArray(res.results)) {
+        return res.results;
+      }
+      return [res];
+    };
+
+    return dbClient as DbClient;
+  },
+  {
+    generateId,
+    id: generateId
+  }
+);
+
+export { generateId };

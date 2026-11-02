@@ -40,8 +40,8 @@ import {
   createService, deleteService,
   assignRole, unassignRole
 } from "./identity";
-import { db, QueryBuilder } from "./database";
-import type { BatchQueryResult } from "./database";
+import { db, QueryBuilder, generateId } from "./database";
+import type { BatchQueryResult, DbClient, DbInterface } from "./database";
 import { search } from "./database/search";
 import { Storage } from "./storage/storage";
 import type { StorageOptions, BucketInfo, S3Object, ListObjectsResult } from "./storage/storage";
@@ -53,6 +53,7 @@ export {
   setAccessToken,
   setRefreshToken,
   refreshTokens,
+  generateId,
   isLoggedIn,
   logout,
   getAccessToken,
@@ -91,6 +92,8 @@ export {
 };
 export type {
   BatchQueryResult,
+  DbClient,
+  DbInterface,
   LoginInput,
   ResetPasswordInput,
   AuthorizeOptions,

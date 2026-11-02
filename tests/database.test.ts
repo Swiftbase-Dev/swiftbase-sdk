@@ -127,6 +127,7 @@ describe("Database sub-module functions", () => {
     }
 
     (globalThis as any).WebSocket = MockWebSocket;
+    (globalThis as any).window = {};
 
     const manager = DatabaseSocketManager.getInstance();
 
