@@ -11,6 +11,7 @@ import {
   loginService,
   loginWithRedirect,
   handleRedirectCallback,
+  forgotPassword,
   resetPassword,
   isLoggedIn,
   logout,
@@ -25,6 +26,8 @@ import {
 } from "./auth";
 import type {
   LoginInput,
+  ForgotPasswordInput,
+  ResetPasswordConfirmInput,
   ResetPasswordInput,
   AuthorizeOptions,
   TokenResponse,
@@ -36,9 +39,20 @@ import { getProfile, updateProfile, updateUser, changePassword } from "./profile
 import type { Profile, ProfileInput, ChangePasswordInput } from "./profile";
 import {
   getUsers, getRoles, getServices,
-  createRole, deleteRole,
-  createService, deleteService,
+  createRole, updateRole, deleteRole,
+  createService, updateService, deleteService,
+  createUser, deleteUser,
   assignRole, unassignRole
+} from "./identity";
+import type {
+  Role,
+  RoleInput,
+  RoleUpdateInput,
+  Service,
+  ServiceInput,
+  ServiceUpdateInput,
+  User,
+  UserInput,
 } from "./identity";
 import { db, QueryBuilder, generateId } from "./database";
 import type { BatchQueryResult, DbClient, DbInterface } from "./database";
@@ -46,7 +60,13 @@ import { search } from "./database/search";
 import { Storage } from "./storage/storage";
 import type { StorageOptions, BucketInfo, S3Object, ListObjectsResult } from "./storage/storage";
 import { ai } from "./ai";
-import type { AIChatMessage, AIChatCompletionOptions, AIChatCompletionResponse } from "./ai";
+import type {
+  AIChatMessage,
+  AIChatCompletionOptions,
+  AIChatCompletionResponse,
+  AIPromptRunOptions,
+  AIPromptRunResponse,
+} from "./ai";
 
 export {
   initializeSdk,
@@ -63,6 +83,7 @@ export {
   loginService,
   loginWithRedirect,
   handleRedirectCallback,
+  forgotPassword,
   resetPassword,
   verifyToken,
   verifyServiceToken,
@@ -79,9 +100,13 @@ export {
   getRoles,
   getServices,
   createRole,
+  updateRole,
   deleteRole,
   createService,
+  updateService,
   deleteService,
+  createUser,
+  deleteUser,
   assignRole,
   unassignRole,
   db,
@@ -95,6 +120,8 @@ export type {
   DbClient,
   DbInterface,
   LoginInput,
+  ForgotPasswordInput,
+  ResetPasswordConfirmInput,
   ResetPasswordInput,
   AuthorizeOptions,
   TokenResponse,
@@ -104,6 +131,14 @@ export type {
   Profile,
   ProfileInput,
   ChangePasswordInput,
+  Role,
+  RoleInput,
+  RoleUpdateInput,
+  Service,
+  ServiceInput,
+  ServiceUpdateInput,
+  User,
+  UserInput,
   StorageOptions,
   BucketInfo,
   S3Object,
@@ -111,4 +146,6 @@ export type {
   AIChatMessage,
   AIChatCompletionOptions,
   AIChatCompletionResponse,
+  AIPromptRunOptions,
+  AIPromptRunResponse,
 };

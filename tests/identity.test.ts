@@ -4,9 +4,13 @@ import {
   getRoles,
   getServices,
   createRole,
+  updateRole,
   deleteRole,
   createService,
+  updateService,
   deleteService,
+  createUser,
+  deleteUser,
   assignRole,
   unassignRole,
 } from "../src/identity";
@@ -99,12 +103,12 @@ describe("Identity sub-module functions", () => {
       makeRequestModule.HTTPMethod.DELETE,
       "/api/roles/role-1"
     );
-    expect(res).toEqual({ success: true });
+    expect(res).toBe("role-1");
   });
 
   // 6. createService
   test("createService should POST to /api/services", async () => {
-    const input = { name: "gateway" };
+    const input = { name: "gateway", projectId: "p1", secretKey: "sec" };
     vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({ id: "svc-1" });
     const res = await createService(input);
     expect(makeRequestModule.makeRequest).toHaveBeenCalledWith(
@@ -124,7 +128,7 @@ describe("Identity sub-module functions", () => {
       makeRequestModule.HTTPMethod.DELETE,
       "/api/services/svc-1"
     );
-    expect(res).toEqual({ success: true });
+    expect(res).toBe("svc-1");
   });
 
   // 8. assignRole
@@ -173,5 +177,56 @@ describe("Identity sub-module functions", () => {
       { roles: ["admin"] }
     );
     expect(res).toEqual({ id: "u-123", roles: ["admin"] });
+  });
+
+  // 10. updateRole
+  test("updateRole should PUT to /api/roles/:id", async () => {
+    vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({ id: "r1", name: "super" });
+    const res = await updateRole({ id: "r1", name: "super" });
+    expect(makeRequestModule.makeRequest).toHaveBeenCalledWith(
+      makeRequestModule.HTTPMethod.PUT,
+      "/api/roles/r1",
+      undefined,
+      { name: "super" }
+    );
+    expect(res).toEqual({ id: "r1", name: "super" });
+  });
+
+  // 11. updateService
+  test("updateService should PUT to /api/services/:id", async () => {
+    vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({ id: "s1", name: "new-srv" });
+    const res = await updateService({ id: "s1", name: "new-srv" });
+    expect(makeRequestModule.makeRequest).toHaveBeenCalledWith(
+      makeRequestModule.HTTPMethod.PUT,
+      "/api/services/s1",
+      undefined,
+      { name: "new-srv" }
+    );
+    expect(res).toEqual({ id: "s1", name: "new-srv" });
+  });
+
+  // 12. createUser
+  test("createUser should POST to /api/users", async () => {
+    const input = { email: "new@example.com", projectId: "p1" };
+    vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({ id: "u-new", email: "new@example.com" });
+    const res = await createUser(input);
+    expect(makeRequestModule.makeRequest).toHaveBeenCalledWith(
+      makeRequestModule.HTTPMethod.POST,
+      "/api/users",
+      undefined,
+      input
+    );
+    expect(res).toEqual({ id: "u-new", email: "new@example.com" });
+  });
+
+  // 13. deleteUser
+  test("deleteUser should DELETE /api/users/:id", async () => {
+    vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({});
+    const res = await deleteUser("u-del");
+    expect(makeRequestModule.makeRequest).toHaveBeenCalledWith(
+      makeRequestModule.HTTPMethod.DELETE,
+      "/api/users/u-del"
+    );
+    expect(res).toBe("u-del");
   });
 });

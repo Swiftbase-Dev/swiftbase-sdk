@@ -1,19 +1,26 @@
 import { app, setAccessToken } from "../common/app";
 
 /**
- * Login as a service
+ * Login as a service using OAuth2 Client Credentials
  *
- * @param {string} projectId The project ID
- * @param {string} serviceId The service ID
- * @param {string} secretKey The service secret key
+ * @param {string} serviceIdOrProjectId The service ID (or project ID if 3 args passed)
+ * @param {string} serviceIdOrSecret The service secret key (or service ID if 3 args passed)
+ * @param {string} [secretKey] The service secret key if 3 args passed
  *
  * @returns {Promise<any>} The login response
  */
-export const loginService = async (projectId: string, serviceId: string, secretKey: string): Promise<any> => {
+export const loginService = async (
+  serviceIdOrProjectId: string,
+  serviceIdOrSecret: string,
+  secretKey?: string
+): Promise<any> => {
+  const actualServiceId = secretKey ? serviceIdOrSecret : serviceIdOrProjectId;
+  const actualSecretKey = secretKey ? secretKey : serviceIdOrSecret;
+
   const body = new URLSearchParams({
     grant_type: 'client_credentials',
-    client_id: serviceId,
-    client_secret: secretKey,
+    client_id: actualServiceId,
+    client_secret: actualSecretKey,
     scope: 'all'
   });
 

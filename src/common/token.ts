@@ -33,27 +33,27 @@ export default class Token {
   }
 
   /**
-   * Checks if the token is valid
+   * Checks if the token is valid and not expired
    *
-   * @returns {boolean} True if the API key is valid, false otherwise
+   * @returns {boolean} True if the token is valid, false otherwise
    */
   isValid() {
     return this.#expiration > Date.now();
   }
 
   /**
-   * Checks if the API key is a secret key
+   * Checks if the token is an access token
    *
-   * @returns {boolean} True if the API key is a secret key, false otherwise
+   * @returns {boolean} True if the token is an access token, false otherwise
    */
   isAccessToken() {
     return this.#type === "access";
   }
 
   /**
-   * Checks if the API key is a public key
+   * Checks if the token is a refresh token
    *
-   * @returns {boolean} True if the API key is a public key, false otherwise
+   * @returns {boolean} True if the token is a refresh token, false otherwise
    */
   isRefreshToken() {
     return this.#type === "refresh";

@@ -2,7 +2,7 @@ import { loginWithPassword } from "./loginwithpassword";
 import { loginService } from "./loginservice";
 import { loginWithRedirect } from "./loginwithredirect";
 import { handleRedirectCallback } from "./handleredirectcallback";
-import { resetPassword } from "./resetpassword";
+import { forgotPassword, resetPassword } from "./resetpassword";
 import { isLoggedIn } from "./isloggedin";
 import { logout } from "./logout";
 import { getAccessToken } from "./getaccesstoken";
@@ -11,6 +11,8 @@ import { registerPasskey, loginWithPasskey, listPasskeys, deletePasskey, isPassk
 
 import type {
   LoginInput,
+  ForgotPasswordInput,
+  ResetPasswordConfirmInput,
   ResetPasswordInput,
   AuthorizeOptions,
   TokenResponse,
@@ -25,6 +27,7 @@ export {
   loginService,
   loginWithRedirect,
   handleRedirectCallback,
+  forgotPassword,
   resetPassword,
   isLoggedIn,
   logout,
@@ -39,6 +42,8 @@ export {
 };
 export type {
   LoginInput,
+  ForgotPasswordInput,
+  ResetPasswordConfirmInput,
   ResetPasswordInput,
   AuthorizeOptions,
   TokenResponse,

@@ -1,4 +1,4 @@
-import type { Profile } from "../profile/types.ts";
+import type { Profile } from "../profile/types";
 
 export interface AuthPayload {
   token: string;
@@ -14,9 +14,24 @@ export interface LoginInput {
   password?: string;
 }
 
-export interface ResetPasswordInput {
-  projectId: string;
+export interface ForgotPasswordInput {
   email: string;
+  projectId?: string;
+}
+
+export interface ResetPasswordConfirmInput {
+  token: string;
+  password: string;
+}
+
+/**
+ * @deprecated Use ForgotPasswordInput or ResetPasswordConfirmInput instead.
+ */
+export interface ResetPasswordInput {
+  projectId?: string;
+  email?: string;
+  token?: string;
+  password?: string;
 }
 
 export interface AuthorizeOptions {

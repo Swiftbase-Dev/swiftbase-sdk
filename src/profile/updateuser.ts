@@ -1,5 +1,5 @@
 import { makeRequest, HTTPMethod } from "../common/makerequest";
-import type { Profile } from "./types.ts";
+import type { Profile } from "./types";
 
 /**
  * Update any user profile (Admin only)

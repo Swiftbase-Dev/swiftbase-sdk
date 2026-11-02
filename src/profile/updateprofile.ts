@@ -1,5 +1,5 @@
 import { makeRequest, HTTPMethod } from "../common/makerequest";
-import type { Profile, ProfileInput } from "./types.ts";
+import type { Profile, ProfileInput } from "./types";
 
 /**
  * Update the current user profile

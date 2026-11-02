@@ -7,21 +7,13 @@ interface SwiftbaseApp {
   authWebUrl: string;
   accessToken: Token | null;
   refreshToken: Token | null;
-  debounceTimeout: number;
-  cacheArticles: boolean;
-  searchCacheEnabled: boolean;
-  searchCacheCapacity: number;
   userManager: UserManager | null;
 }
 
 interface initializeSdkOptions {
-  baseUrl: string;
+  baseUrl?: string;
   /** Origin of the universal login page (used for hosted passkey enrollment). Defaults to https://identity.swiftbase.io */
   authWebUrl?: string;
-  debounceTimeout?: number;
-  cacheArticles?: boolean;
-  searchCacheEnabled?: boolean;
-  searchCacheCapacity?: number;
 }
 
 export const app: SwiftbaseApp = {
@@ -30,10 +22,6 @@ export const app: SwiftbaseApp = {
   authWebUrl: "https://identity.swiftbase.io",
   accessToken: null,
   refreshToken: null,
-  debounceTimeout: 300,
-  cacheArticles: true,
-  searchCacheEnabled: true,
-  searchCacheCapacity: 50,
   userManager: null,
 };
 
@@ -48,21 +36,6 @@ export const initializeSdk = (projectId: string, options?: initializeSdkOptions)
   // Override the universal login page URL if provided
   if (options?.authWebUrl) {
     app.authWebUrl = options.authWebUrl.endsWith("/") ? options.authWebUrl.slice(0, -1) : options.authWebUrl;
-  }
-  // Set the debounce timeout if provided
-  if (options?.debounceTimeout !== undefined) {
-    app.debounceTimeout = options.debounceTimeout;
-  }
-  // Set the cacheArticles flag if provided
-  if (options?.cacheArticles !== undefined) {
-    app.cacheArticles = options.cacheArticles;
-  }
-  // Set the search cache options if provided
-  if (options?.searchCacheEnabled !== undefined) {
-    app.searchCacheEnabled = options.searchCacheEnabled;
-  }
-  if (options?.searchCacheCapacity !== undefined) {
-    app.searchCacheCapacity = options.searchCacheCapacity;
   }
 
   // Load tokens from sessionStorage if in browser
@@ -110,7 +83,6 @@ export const initializeSdk = (projectId: string, options?: initializeSdkOptions)
 };
 
 export const setAccessToken = (token: string, expiration?: number) => {
-  console.log("[SDK] setAccessToken called", !!token);
   if (!token || token === "null" || token === "undefined") {
     app.accessToken = null;
     if (typeof window !== "undefined" && window.sessionStorage) {
@@ -125,7 +97,6 @@ export const setAccessToken = (token: string, expiration?: number) => {
 };
 
 export const setRefreshToken = (token: string, expiration?: number) => {
-  console.log("[SDK] setRefreshToken called", !!token);
   if (!token || token === "null" || token === "undefined") {
     app.refreshToken = null;
     if (typeof window !== "undefined" && window.sessionStorage) {

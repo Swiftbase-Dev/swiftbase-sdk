@@ -45,18 +45,10 @@ describe("app.ts SDK functions", () => {
   test("initializeSdk should initialize options in non-browser environment", () => {
     initializeSdk("test-project-id", {
       baseUrl: "https://custom.api.io/",
-      debounceTimeout: 500,
-      cacheArticles: false,
-      searchCacheEnabled: false,
-      searchCacheCapacity: 100,
     });
 
     expect(app.projectId).toBe("test-project-id");
     expect(app.baseUrl).toBe("https://custom.api.io"); // Trailing slash removed
-    expect(app.debounceTimeout).toBe(500);
-    expect(app.cacheArticles).toBe(false);
-    expect(app.searchCacheEnabled).toBe(false);
-    expect(app.searchCacheCapacity).toBe(100);
     expect(app.userManager).toBeNull();
   });
 

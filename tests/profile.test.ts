@@ -72,17 +72,25 @@ describe("Profile sub-module functions", () => {
     expect(profile).toEqual(mockUpdatedUser);
   });
 
-  test("changePassword should POST to /api/users/change-password", async () => {
-    vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({ success: true });
+  test("changePassword should get /api/me and update password via /api/users/:id", async () => {
+    vi.mocked(makeRequestModule.makeRequest)
+      .mockResolvedValueOnce({ id: "my-id" })
+      .mockResolvedValueOnce({ success: true });
 
     const input = { currentPassword: "old", newPassword: "new" };
     const result = await changePassword(input);
 
-    expect(makeRequestModule.makeRequest).toHaveBeenCalledWith(
-      makeRequestModule.HTTPMethod.POST,
-      "/api/users/change-password",
+    expect(makeRequestModule.makeRequest).toHaveBeenNthCalledWith(
+      1,
+      makeRequestModule.HTTPMethod.GET,
+      "/api/me"
+    );
+    expect(makeRequestModule.makeRequest).toHaveBeenNthCalledWith(
+      2,
+      makeRequestModule.HTTPMethod.PUT,
+      "/api/users/my-id",
       undefined,
-      input
+      { password: "new", currentPassword: "old" }
     );
     expect(result).toEqual({ success: true });
   });

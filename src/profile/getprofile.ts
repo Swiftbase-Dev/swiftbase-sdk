@@ -1,5 +1,5 @@
 import { makeRequest, HTTPMethod } from "../common/makerequest";
-import type { Profile } from "./types.js";
+import type { Profile } from "./types";
 
 /**
  * Get the current user profile

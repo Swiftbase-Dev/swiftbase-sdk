@@ -37,17 +37,39 @@ export class TooManyRequests extends Error {
   }
 }
 
-const handleRequestError = (status: number) => {
+const handleRequestError = (status: number, message?: string) => {
+  const errorMsg = message || (
+    status === 401 ? "Unauthorized" :
+    status === 403 ? "Forbidden" :
+    status === 400 ? "Bad Request" :
+    status === 429 ? "Too Many Requests" :
+    `HTTP error ${status}`
+  );
+
   if (status === 401) {
-    throw new Unauthorized("Unauthorized");
+    throw new Unauthorized(errorMsg);
   } else if (status === 403) {
-    throw new Forbidden("Forbidden");
+    throw new Forbidden(errorMsg);
   } else if (status === 400) {
-    throw new BadRequest("Bad Request");
+    throw new BadRequest(errorMsg);
   } else if (status === 429) {
-    throw new TooManyRequests("Too Many Requests");
+    throw new TooManyRequests(errorMsg);
   } else {
-    throw new Error("Unexpected error");
+    throw new Error(errorMsg);
+  }
+};
+
+const extractErrorMessage = async (response: Response): Promise<string> => {
+  try {
+    const bodyText = await response.text();
+    try {
+      const parsed = JSON.parse(bodyText);
+      return parsed.message || parsed.error_description || parsed.error || bodyText;
+    } catch {
+      return bodyText;
+    }
+  } catch {
+    return "";
   }
 };
 
@@ -152,7 +174,8 @@ export const makeRequest = async (
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
-      handleRequestError(response.status);
+      const errMsg = await extractErrorMessage(response);
+      handleRequestError(response.status, errMsg);
     }
     const data = await response.json();
     
@@ -163,7 +186,6 @@ export const makeRequest = async (
       return data;
     }
   } catch (error) {
-    console.error(error);
     throw error;
   }
 };
@@ -187,11 +209,11 @@ export const sendFile = async (path: string, file: File) => {
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
-      handleRequestError(response.status);
+      const errMsg = await extractErrorMessage(response);
+      handleRequestError(response.status, errMsg);
     }
     return await response.json();
   } catch (error) {
-    console.error(error);
     throw error;
   }
 };

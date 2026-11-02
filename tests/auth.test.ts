@@ -9,6 +9,7 @@ import {
   login,
   loginWithRedirect,
   handleRedirectCallback,
+  forgotPassword,
   resetPassword,
   verifyToken,
   verifyServiceToken,
@@ -178,17 +179,41 @@ describe("Auth sub-module functions", () => {
     expect(profile).toEqual({ id: "user-id-123", email: "a@b.com" });
   });
 
-  // 8. resetPassword
-  test("resetPassword should make POST request to /api/users/reset-password", async () => {
-    vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({ success: true });
-    const res = await resetPassword({ email: "reset@test.com", projectId: "p-123" });
+  // 8. forgotPassword & resetPassword
+  test("forgotPassword should make POST request to /api/forgot-password", async () => {
+    vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({ message: "Sent" });
+    const res = await forgotPassword({ email: "reset@test.com", projectId: "p-123" });
     expect(vi.mocked(makeRequestModule.makeRequest)).toHaveBeenCalledWith(
       makeRequestModule.HTTPMethod.POST,
-      "/api/users/reset-password",
+      "/api/forgot-password",
       undefined,
       { email: "reset@test.com", projectId: "p-123" }
     );
-    expect(res).toEqual({ success: true });
+    expect(res).toEqual({ message: "Sent" });
+  });
+
+  test("resetPassword with token and password should make POST request to /api/reset-password", async () => {
+    vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({ message: "Password updated" });
+    const res = await resetPassword({ token: "tok-123", password: "new-password" });
+    expect(vi.mocked(makeRequestModule.makeRequest)).toHaveBeenCalledWith(
+      makeRequestModule.HTTPMethod.POST,
+      "/api/reset-password",
+      undefined,
+      { token: "tok-123", password: "new-password" }
+    );
+    expect(res).toEqual({ message: "Password updated" });
+  });
+
+  test("resetPassword with legacy email input should delegate to /api/forgot-password", async () => {
+    vi.mocked(makeRequestModule.makeRequest).mockResolvedValue({ message: "Dispatched" });
+    const res = await resetPassword({ email: "reset@test.com", projectId: "p-123" });
+    expect(vi.mocked(makeRequestModule.makeRequest)).toHaveBeenCalledWith(
+      makeRequestModule.HTTPMethod.POST,
+      "/api/forgot-password",
+      undefined,
+      { email: "reset@test.com", projectId: "p-123" }
+    );
+    expect(res).toEqual({ message: "Dispatched" });
   });
 
   // 9. verifyToken

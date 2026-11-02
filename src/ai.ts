@@ -56,8 +56,28 @@ export interface AIChatCompletionResponse {
   };
 }
 
+export interface AIPromptRunOptions {
+  inputs?: Record<string, any>;
+  parameters?: Record<string, any>;
+  model?: string;
+  temperature?: number;
+  max_tokens?: number;
+}
+
+export interface AIPromptRunResponse {
+  success?: boolean;
+  output?: string;
+  response?: string;
+  model?: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
 /**
- * Generate completion using the AI service.
+ * AI Service interface for completions and prompts.
  */
 export const ai = {
   chat: {
@@ -72,6 +92,17 @@ export const ai = {
           max_tokens: options.max_tokens,
         });
       }
+    }
+  },
+  prompts: {
+    run: async (promptId: string, options?: AIPromptRunOptions): Promise<AIPromptRunResponse> => {
+      return await makeRequest(HTTPMethod.POST, `/api/ai/prompts/${promptId}/run`, undefined, {
+        parameters: options?.parameters || options?.inputs || {},
+        inputs: options?.inputs || options?.parameters || {},
+        model: options?.model,
+        temperature: options?.temperature,
+        max_tokens: options?.max_tokens,
+      });
     }
   }
 };
