@@ -7,7 +7,7 @@ TypeScript SDK for integrating customer applications with the Swiftbase platform
 Install the package via npm:
 
 ```bash
-npm install swiftbase-sdk
+npm install @swiftbaseio/sdk
 ```
 
 ---
@@ -19,7 +19,7 @@ npm install swiftbase-sdk
 Initialize the SDK at the entry point of your application:
 
 ```typescript
-import { initializeSdk } from "swiftbase-sdk";
+import { initializeSdk } from "@swiftbaseio/sdk";
 
 initializeSdk("your-project-id");
 ```
@@ -33,7 +33,7 @@ The SDK provides several authentication mechanisms, including credentials, redir
 ### User Login (Email / Password)
 
 ```typescript
-import { loginWithPassword } from "swiftbase-sdk";
+import { loginWithPassword } from "@swiftbaseio/sdk";
 
 const userProfile = await loginWithPassword({
   projectId: "your-project-id",
@@ -46,7 +46,7 @@ console.log(`Welcome back, ${userProfile.firstName}!`);
 ### Password-less / Redirect OIDC Login (Browser Environment)
 
 ```typescript
-import { loginWithRedirect, handleRedirectCallback } from "swiftbase-sdk";
+import { loginWithRedirect, handleRedirectCallback } from "@swiftbaseio/sdk";
 
 // Trigger OIDC redirect flow
 await loginWithRedirect({
@@ -61,7 +61,7 @@ const profile = await handleRedirectCallback();
 ### Service Login (Client Credentials)
 
 ```typescript
-import { loginService } from "swiftbase-sdk";
+import { loginService } from "@swiftbaseio/sdk";
 
 const tokenResponse = await loginService(
   "your-project-id",
@@ -73,7 +73,7 @@ const tokenResponse = await loginService(
 ### Manage Session
 
 ```typescript
-import { isLoggedIn, logout, getAccessToken } from "swiftbase-sdk";
+import { isLoggedIn, logout, getAccessToken } from "@swiftbaseio/sdk";
 
 if (isLoggedIn()) {
   const token = await getAccessToken();
@@ -90,7 +90,7 @@ await logout();
 Retrieve and manage user profile details:
 
 ```typescript
-import { getProfile, updateProfile, changePassword } from "swiftbase-sdk";
+import { getProfile, updateProfile, changePassword } from "@swiftbaseio/sdk";
 
 // Get current profile
 const profile = await getProfile();
@@ -115,7 +115,7 @@ await changePassword({
 Query your Swiftbase databases using a fluent, type-safe builder. Query execution automatically utilizes WebSockets if available, otherwise it transparently falls back to REST.
 
 ```typescript
-import { db } from "swiftbase-sdk";
+import { db } from "@swiftbaseio/sdk";
 
 // Initialize builder
 const usersDb = db("my_database")("users");
@@ -162,7 +162,7 @@ unsubscribe();
 Interface with your storage buckets using the S3-compatible `Storage` module.
 
 ```typescript
-import { Storage } from "swiftbase-sdk";
+import { Storage } from "@swiftbaseio/sdk";
 
 const storage = new Storage({
   bucket: "my-bucket",
@@ -192,7 +192,7 @@ await storage.deleteObject("uploads/hello.txt");
 ## Identity & Role Management (Admin only)
 
 ```typescript
-import { getUsers, assignRole, unassignRole } from "swiftbase-sdk";
+import { getUsers, assignRole, unassignRole } from "@swiftbaseio/sdk";
 
 // List all users in a project
 const allUsers = await getUsers("your-project-id");

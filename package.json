@@ -1,5 +1,5 @@
 {
-  "name": "swiftbase-sdk",
+  "name": "@swiftbaseio/sdk",
   "version": "1.0.9",
   "description": "TypeScript SDK for integrating customer apps with Swiftbase",
   "main": "./dist/index.js",
